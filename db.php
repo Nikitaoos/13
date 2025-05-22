@@ -1,8 +1,8 @@
 <?php
 $host = 'localhost';
-$dbname = 'u68664';
-$username = 'u68664';
-$password = '5698071';
+$dbname = 'u68674';
+$username = 'u68674';
+$password = '7475746';
 ini_set('display_errors', 0);
 ini_set('display_startup_errors', 0);
 error_reporting(0);
