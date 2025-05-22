@@ -5,6 +5,9 @@ require 'db.php';
 header('Content-Type: text/html; charset=UTF-8');
 header("X-XSS-Protection: 1; mode=block");
 header("X-Content-Type-Options: nosniff");
+header("Strict-Transport-Security: max-age=31536000; includeSubDomains");
+header("Content-Security-Policy: default-src 'self'; script-src 'self' https://cdn.jsdelivr.net");
+
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
@@ -59,148 +62,113 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
 ?>
 <!DOCTYPE html>
 <html lang="ru-RU">
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <meta charset="UTF-8">
+    <title>Форма</title>
+</head>
+<body class="bg-light">
 
-  <head>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-   <meta charset="UTF-8">
-    <title>index</title>
-  </head>
+<div class="container mt-4">
 
-  <body>
     <?php if (!empty($messages)): ?>
-           <div class="mb-3">
-               <?php foreach ($messages as $message): ?>
-                   <div class="alert alert-info"><?= $message ?></div>
-               <?php endforeach; ?>
-           </div>
-       <?php endif; ?>
+        <div class="mb-3">
+            <?php foreach ($messages as $message): ?>
+                <div class="alert alert-info"><?= $message ?></div>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
 
-       <?php
-       $has_errors = false;
-       foreach ($errors as $error) {
-           if (!empty($error)) {
-               $has_errors = true;
-               break;
-           }
-       }
-       ?>
+    <?php
+    $has_errors = false;
+    foreach ($errors as $error) {
+        if (!empty($error)) {
+            $has_errors = true;
+            break;
+        }
+    }
+    ?>
 
-       <?php if ($has_errors): ?>
-           <div class="alert alert-danger mb-3">
-               <h4>Обнаружены ошибки:</h4>
-               <ul class="mb-0">
-                   <?php foreach ($errors as $field => $error): ?>
-                       <?php if (!empty($error)): ?>
-                           <li><?= htmlspecialchars($error) ?></li>
-                       <?php endif; ?>
-                   <?php endforeach; ?>
-               </ul>
-           </div>
-       <?php endif; ?>
-    <form action="sub.php" method="POST" id="form" class="w-50 mx-auto">
-          <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
-
-          <label class="form-label">
-            1) ФИО:<br>
-            <input type="text" class="form-control <?php echo !empty($errors['name']) ? 'is-invalid' : ''; ?>" placeholder="Введите ваше ФИО" name="name" id = "name" required
-                           value="<?php echo htmlspecialchars($values['name'] ?? ''); ?>">
-                    <?php if (!empty($errors['name'])): ?>
-                        <div class="error-message"><?php echo htmlspecialchars($errors['name']); ?></div>
+    <?php if ($has_errors): ?>
+        <div class="alert alert-danger mb-3">
+            <h4>Обнаружены ошибки:</h4>
+            <ul class="mb-0">
+                <?php foreach ($errors as $field => $error): ?>
+                    <?php if (!empty($error)): ?>
+                        <li><?= htmlspecialchars($error) ?></li>
                     <?php endif; ?>
-          </label><br>
+                <?php endforeach; ?>
+            </ul>
+        </div>
+    <?php endif; ?>
 
-          <label class="form-label">
-            2) Телефон:<br>
-            <input class="form-control" type="tel" placeholder="+123456-78-90" name="phone" id="phone" required
-                           value="<?php echo htmlspecialchars($values['phone'] ?? ''); ?>"
-                           class="<?php echo !empty($errors['phone']) ? 'is-invalid' : ''; ?>">
-                           <?php if (!empty($errors['phone'])): ?>
-                      <div class="invalid-feedback"><?php echo htmlspecialchars($errors['phone']); ?></div>
-                  <?php endif; ?>
-          </label><br>
+    <form action="sub.php" method="POST" class="w-75 mx-auto bg-white p-4 rounded shadow-sm">
+        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
 
-          <label class="form-label">
-            3) e-mail:<br>
-            <input class="form-control" type="email" placeholder="Введите вашу почту" name="email" id="email" required
-                           value="<?php echo htmlspecialchars($values['email'] ?? ''); ?>"
-                           class="<?php echo !empty($errors['email']) ? 'is-invalid' : ''; ?>">
-                    <?php if (!empty($errors['birthdate'])): ?>
-                       <div class="invalid-feedback"><?php echo htmlspecialchars($errors['birthdate']); ?></div>
-                   <?php endif; ?>
-          </label><br>
+        <div class="mb-3">
+            <label class="form-label">ФИО:</label>
+            <input type="text" class="form-control <?= !empty($errors['name']) ? 'is-invalid' : '' ?>" name="name" value="<?= htmlspecialchars($values['name'] ?? '') ?>" required>
+        </div>
 
-          <label class="form-label">
-            4) Дата рождения:<br>
-            <input class="form-control" value="2000-07-15" type="date" name="birthdate" id="birthdate" required
-                           value="<?php echo htmlspecialchars($values['birthdate'] ?? ''); ?>"
-                           class="<?php echo !empty($errors['birthdate']) ? 'is-invalid' : ''; ?>">
-                     <?php if (!empty($errors['birthdate'])): ?>
-                        <div class="invalid-feedback"><?php echo htmlspecialchars($errors['birthdate']); ?></div>
-                    <?php endif; ?>
-           </label><br>
-          <div><br>
-            5) Пол:<br>
-          <label class="form-check-label"><input type="radio" checked="checked" class="form-check-input" value="male" id="male" name="gender" required
-                               <?php echo ($values['gender'] ?? '') === 'male' ? 'checked' : ''; ?>
-                               class="<?php echo !empty($errors['gender']) ? 'is-invalid' : ''; ?>">
-            Мужской</label>
-          <label class="form-check-label"><input type="radio" class="form-check-input" value="female" id="female" name="gender"
-                               <?php echo ($values['gender'] ?? '') === 'female' ? 'checked' : ''; ?>
-                               class="<?php echo !empty($errors['gender']) ? 'is-invalid' : ''; ?>">
-            Женский</label><br>
-            <?php if (!empty($errors['gender'])): ?>
-                <div class="invalid-feedback d-block"><?php echo htmlspecialchars($errors['gender']); ?></div>
-            <?php endif; ?>
+        <div class="mb-3">
+            <label class="form-label">Телефон:</label>
+            <input type="tel" class="form-control <?= !empty($errors['phone']) ? 'is-invalid' : '' ?>" name="phone" value="<?= htmlspecialchars($values['phone'] ?? '') ?>" required>
+        </div>
 
-          </div><br>
+        <div class="mb-3">
+            <label class="form-label">E-mail:</label>
+            <input type="email" class="form-control <?= !empty($errors['email']) ? 'is-invalid' : '' ?>" name="email" value="<?= htmlspecialchars($values['email'] ?? '') ?>" required>
+        </div>
 
-          <label class="form-label">
-            6) Любимый язык программирования:<br>
-            <select class="form-select" id="languages" name="languages[]" multiple="multiple" required class="<?php echo !empty($errors['languages']) ? 'is-invalid' : ''; ?>" size="5">
-            <?php
-              $allLanguages = ['Pascal', 'C', 'C++', 'JavaScript', 'PHP', 'Python', 'Java', 'Haskell', 'Clojure', 'Prolog', 'Scala'];
-              $selectedLanguages = isset($values['languages']) ? (is_array($values['languages']) ? $values['languages'] : explode(',', $values['languages'])) : [];
+        <div class="mb-3">
+            <label class="form-label">Дата рождения:</label>
+            <input type="date" class="form-control <?= !empty($errors['birthdate']) ? 'is-invalid' : '' ?>" name="birthdate" value="<?= htmlspecialchars($values['birthdate'] ?? '') ?>" required>
+        </div>
 
-              foreach ($allLanguages as $lang): ?>
-                  <option value="<?php echo htmlspecialchars($lang); ?>"
-                      <?php echo in_array($lang, $selectedLanguages) ? 'selected' : ''; ?>>
-                      <?php echo htmlspecialchars($lang); ?>
-                  </option>
-              <?php endforeach; ?>
-          </select>
-          <?php if (!empty($errors['languages'])): ?>
-              <div class="invalid-feedback d-block"><?php echo htmlspecialchars($errors['languages']); ?></div>
-          <?php endif; ?>
-          </label><br>
+        <div class="mb-3">
+            <label class="form-label">Пол:</label><br>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="gender" value="male" <?= ($values['gender'] ?? '') === 'male' ? 'checked' : '' ?>>
+                <label class="form-check-label">Мужской</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="gender" value="female" <?= ($values['gender'] ?? '') === 'female' ? 'checked' : '' ?>>
+                <label class="form-check-label">Женский</label>
+            </div>
+        </div>
 
-          <label class="form-label">
-            7) Биография:<br>
-            <input type="text" class="form-control" id="bio" name="bio" required
-                              class="<?php echo !empty($errors['bio']) ? 'is-invalid' : ''; ?>"><?php
-                              echo htmlspecialchars($values['bio'] ?? ''); ?></textarea>
-                      <?php if (!empty($errors['bio'])): ?>
-                          <div class="invalid-feedback"><?php echo htmlspecialchars($errors['bio']); ?></div>
-                      <?php endif; ?>
-          </label><br>
+        <div class="mb-3">
+            <label class="form-label">Любимые языки программирования:</label>
+            <select class="form-select <?= !empty($errors['languages']) ? 'is-invalid' : '' ?>" name="languages[]" multiple size="5" required>
+                <?php
+                $allLanguages = ['Pascal', 'C', 'C++', 'JavaScript', 'PHP', 'Python', 'Java', 'Haskell', 'Clojure', 'Prolog', 'Scala'];
+                $selectedLanguages = isset($values['languages']) ? (is_array($values['languages']) ? $values['languages'] : explode(',', $values['languages'])) : [];
 
-            8):<br>
-          <label class="form-check-label"><input type="checkbox" class="form-check-input" name="agreement" id="agreement" value="1" required
-                           class="<?php echo !empty($errors['agreement']) ? 'is-invalid' : ''; ?>">
-            <?php echo ($values['agreement'] ?? '') ? 'checked' : ''; ?>
-            С контрактом ознакомлен(а)
-            <?php if (!empty($errors['agreement'])): ?>
-                <div class="invalid-feedback d-block"><?php echo htmlspecialchars($errors['agreement']); ?></div>
-            <?php endif; ?>
-          </label><br>
+                foreach ($allLanguages as $lang): ?>
+                    <option value="<?= htmlspecialchars($lang) ?>" <?= in_array($lang, $selectedLanguages) ? 'selected' : '' ?>>
+                        <?= htmlspecialchars($lang) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
 
-            9)Кнопка:<br>
-          <button type="submit" name="save" class="btn btn-primary">Опубликовать</button>
+        <div class="mb-3">
+            <label class="form-label">Биография:</label>
+            <textarea class="form-control <?= !empty($errors['bio']) ? 'is-invalid' : '' ?>" name="bio" rows="4" required><?= htmlspecialchars($values['bio'] ?? '') ?></textarea>
+        </div>
 
-          <?php if (!empty($_SESSION['login'])): ?>
-                <a href="logout.php" class="btn btn-danger">Выйти</a>
-            <?php endif; ?>
+        <div class="form-check mb-3">
+            <input class="form-check-input <?= !empty($errors['agreement']) ? 'is-invalid' : '' ?>" type="checkbox" name="agreement" value="1" <?= !empty($values['agreement']) ? 'checked' : '' ?> required>
+            <label class="form-check-label">С контрактом ознакомлен(а)</label>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Сохранить</button>
+        <?php if (!empty($_SESSION['login'])): ?>
+            <a href="logout.php" class="btn btn-danger ms-2">Выйти</a>
+        <?php endif; ?>
     </form>
-  </body>
+</div>
 
+</body>
 </html>
